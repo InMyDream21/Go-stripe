@@ -1,8 +1,11 @@
 package cards
 
 import (
-	"github.com/stripe/stripe-go/v74"
-	"github.com/stripe/stripe-go/v74/paymentintent"
+	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v72/paymentintent"
+	"github.com/stripe/stripe-go/v72/paymentmethod"
+	"github.com/stripe/stripe-go/v72/sub"
 )
 
 type Card struct {
@@ -43,6 +46,70 @@ func (c *Card) CreatePaymentIntent(currency string, amount int) (*stripe.Payment
 		return nil, msg, err
 	}
 	return pi, "", nil
+}
+
+// GetPaymentMethod gets the payment method by payment intent id
+func (c *Card) GetPaymentMethod(s string) (*stripe.PaymentMethod, error) {
+	stripe.Key = c.Secret
+
+	pm, err := paymentmethod.Get(s, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return pm, nil
+}
+
+// RetrievePaymentIntent gets an existing payment intent by id
+func (c *Card) RetrievePaymentIntent(id string) (*stripe.PaymentIntent, error) {
+	stripe.Key = c.Secret
+
+	pi, err := paymentintent.Get(id, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return pi, nil
+}
+
+func (c *Card) SubscribeToPlan(cust *stripe.Customer, plan, email, lastFour, cardType string) (*stripe.Subscription, error) {
+	stripeCustomerID := cust.ID
+	items := []*stripe.SubscriptionItemsParams{
+		{Plan: stripe.String(plan)},
+	}
+	params := &stripe.SubscriptionParams{
+		Customer: stripe.String(stripeCustomerID),
+		Items:    items,
+	}
+	params.AddMetadata("last_four", lastFour)
+	params.AddMetadata("card_type", cardType)
+	params.AddExpand("latest_invoice.payment_intent")
+	subscription, err := sub.New(params)
+	if err != nil {
+		return nil, err
+	}
+	return subscription, nil
+}
+
+func (c *Card) CreateCustomer(pm, email string) (*stripe.Customer, string, error) {
+	stripe.Key = c.Secret
+	customerParams := &stripe.CustomerParams{
+		PaymentMethod: stripe.String(pm),
+		Email:         stripe.String(email),
+		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+			DefaultPaymentMethod: stripe.String(pm),
+		},
+	}
+
+	cust, err := customer.New(customerParams)
+	if err != nil {
+		msg := ""
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			msg = cardErrorMessage(stripeErr.Code)
+		}
+		return nil, msg, err
+	}
+	return cust, "", nil
 }
 
 func cardErrorMessage(code stripe.ErrorCode) string {

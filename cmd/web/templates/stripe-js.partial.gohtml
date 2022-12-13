@@ -1,15 +1,14 @@
-{{ define "stripe-js" }}
-
+{{define "stripe-js"}}
 <script src="https://js.stripe.com/v3/"></script>
 
-    <script>
+<script>
     let card;
     let stripe;
     const cardMessages = document.getElementById("card-messages");
     const payButton = document.getElementById("pay-button");
     const processing = document.getElementById("processing-payment");
 
-    stripe = Stripe({{ .StripePublishableKey }});
+    stripe = Stripe({{.StripePublishableKey}});
 
     function hidePayButton() {
         payButton.classList.add("d-none");
@@ -35,36 +34,6 @@
         cardMessages.innerText = "Transaction successful";
     }
 
-    (function() {
-        // create stripe & elements
-        const elements = stripe.elements();
-        const style = {
-            base: {
-                fontSize: '16px',
-                lineHeight: '24px'
-            }
-        };
-
-        // create card entry
-        card = elements.create('card', {
-            style: style,
-            hidePostalCode: true,
-        });
-        card.mount("#card-element");
-
-        // check for input errors
-        card.addEventListener('change', function(event) {
-            var displayError = document.getElementById("card-errors");
-            if (event.error) {
-                displayError.classList.remove('d-none');
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.classList.add('d-none');
-                displayError.textContent = '';
-            }
-        });
-    })();
-
     function val() {
         let form = document.getElementById("charge_form");
         if (form.checkValidity() === false) {
@@ -76,7 +45,7 @@
         form.classList.add("was-validated");
         hidePayButton();
 
-        let amountToCharge = String(parseFloat(document.getElementById("amount").value) * 100)
+        let amountToCharge = document.getElementById("amount").value;
         
         let payload = {
             amount: amountToCharge,
@@ -113,7 +82,7 @@
                         } else if(result.paymentIntent) {
                             if (result.paymentIntent.status === "succeeded") {
                                 // we have charged the card
-                                document.getElementById("payment_method").value = result.paymentIntent.payment_method_types[0];
+                                document.getElementById("payment_method").value = result.paymentIntent.payment_method;
                                 document.getElementById("payment_intent").value = result.paymentIntent.id;
                                 document.getElementById("payment_amount").value = result.paymentIntent.amount;
                                 document.getElementById("payment_currency").value = result.paymentIntent.currency;
@@ -131,6 +100,35 @@
             })
     }
 
-    </script>
+    (function() {
+        // create stripe & elements
+        const elements = stripe.elements();
+        const style = {
+            base: {
+                fontSize: '16px',
+                lineHeight: '24px'
+            }
+        };
 
-{{ end }}
+        // create card entry
+        card = elements.create('card', {
+            style: style,
+            hidePostalCode: true,
+        });
+        card.mount("#card-element");
+
+        // check for input errors
+        card.addEventListener('change', function(event) {
+            var displayError = document.getElementById("card-errors");
+            if (event.error) {
+                displayError.classList.remove('d-none');
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.classList.add('d-none');
+                displayError.textContent = '';
+            }
+        });
+    })();
+</script>
+
+{{end}}
