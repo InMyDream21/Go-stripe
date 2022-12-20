@@ -35,7 +35,7 @@ start_front: build_front
 
 ## start_back: starts the back end
 start_back: build_back
-	@echo "Starting Bank End"
+	@echo "Starting the back end..."
 	@env ./dist/gostripe_api -port=${API_PORT} &
 	@echo "Back end running!"
 
