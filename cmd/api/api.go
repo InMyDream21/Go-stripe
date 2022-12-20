@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 const version = "1.0.0"
@@ -22,6 +24,12 @@ type config struct {
 	stripe struct {
 		secret string
 		key    string
+	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
 	}
 }
 
@@ -44,7 +52,6 @@ func (app *application) serve() error {
 	}
 
 	app.infoLog.Println(fmt.Sprintf("Starting Back end server in %s mode on port %d", app.config.env, app.config.port))
-
 	return srv.ListenAndServe()
 }
 
@@ -53,10 +60,19 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4001, "Server port to listen on")
 	flag.StringVar(&cfg.db.dsn, "dsn", "haikal:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
-	flag.StringVar(&cfg.env, "env", "development", "Application enviornment {development|production|maintenance}")
+	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production|maintenance}")
+	flag.StringVar(&cfg.smtp.host, "smtphost", "smtp.mailtrap.io", "smtp host")
+	flag.IntVar(&cfg.smtp.port, "smtpport", 587, "SMTP port")
 
 	flag.Parse()
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error Loading environment variables")
+	}
+
+	cfg.smtp.username = os.Getenv("SMTP_USER")
+	cfg.smtp.password = os.Getenv("SMTP_PASSWORD")
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")
 	cfg.stripe.secret = os.Getenv("STRIPE_SECRET")
 

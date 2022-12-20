@@ -10,4 +10,11 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 )
 
-require github.com/alexedwards/scs/v2 v2.5.0 // indirect
+require (
+	github.com/alexedwards/scs/mysqlstore v0.0.0-20221206171621-0f0849773278
+	github.com/alexedwards/scs/v2 v2.5.0
+	github.com/xhit/go-simple-mail/v2 v2.13.0
+	golang.org/x/crypto v0.4.0
+)
+
+require github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
