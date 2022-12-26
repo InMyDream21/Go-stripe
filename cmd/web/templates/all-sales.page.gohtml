@@ -22,13 +22,53 @@
         
         </tbody>
     </table>
+
+    <nav>
+        <ul id="paginator" class="pagination">
+        
+        </ul>
+    </nav>
 {{ end }}
 
 {{ define "js" }}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    let currentPage = 1;
+    let pageSize = 5;
+
+    function paginator(pages, curPage) {
+        let p = document.getElementById("paginator");
+
+        let html = `<li class="page-item"><a href="#!" class="page-link pager" data-page="${curPage - 1}">&lt;</a></li>`;
+        for (var i = 0; i < pages; i++){
+            html += `<li class="page-item"><a href="#!" class="page-link pager" data-page="${i + 1}">${i + 1}</a></li>`;
+        }
+
+        html += `<li class="page-item"><a href="#!" class="page-link pager" data-page="${curPage + 1}">&gt;</a></li>`;
+        
+        p.innerHTML = html;
+
+        let pageBtns = document.getElementsByClassName("pager");
+        for (var j = 0; j < pageBtns.length; j++) {
+            pageBtns[j].addEventListener("click", function(evt) {
+                let desiredPage = evt.target.getAttribute("data-page");
+                console.log("clicked, and data-page is", desiredPage);
+                if ((desiredPage > 0) && (desiredPage <= pages + 1)) {
+                    console.log("would go to page", desiredPage);
+                    updateTable(pageSize, desiredPage);
+                }
+            })
+        }
+    }
+
+    function updateTable(ps, cp) {
         let token = localStorage.getItem("token");
         let tbody = document.getElementById("sales-table").getElementsByTagName("tbody")[0];
+        tbody.innerHTML = "";
+
+        let body = {
+            page_size: parseInt(ps, 10),
+            page: parseInt(cp, 10),
+        }
 
         const requestOptions = {
             method: 'post',
@@ -37,13 +77,14 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token,
             },
+            body: JSON.stringify(body),
         }
 
         fetch("{{ .API }}/api/admin/all-sales", requestOptions)
         .then(response => response.json())
         .then(function (data) {
-            if (data){
-                data.forEach(function(i) {
+            if (data.orders){
+                data.orders.forEach(function(i) {
                     let newRow = tbody.insertRow();
                     let newCell = newRow.insertCell();
                     newCell.innerHTML = `<a href="/admin/sales/${i.id}">Order ${i.id}</a>`;
@@ -68,21 +109,26 @@
                         newCell.innerHTML = `<span class="badge bg-success">Charged</dspan>`
                     }
                 })
+                paginator(data.last_page, data.current_page);
             } else {
                 let newRow = tbody.insertRow();
                 let newCell = newRow.insertCell();
-                newCell.setAttribute("colspan", "4");
+                newCell.setAttribute("colspan", "5");
                 newCell.innerHTML = "No data available";
             }
         })
+    }
 
-        function formatCurrency(amount) {
-            let c = parseFloat(amount/100);
-            return c.toLocaleString("en-CA", {
-                style: "currency",
-                currency: "CAD",
-            });
-        }
+    document.addEventListener("DOMContentLoaded", function() {
+        updateTable(pageSize, currentPage);
     })
+
+    function formatCurrency(amount) {
+        let c = parseFloat(amount/100);
+        return c.toLocaleString("en-CA", {
+            style: "currency",
+            currency: "CAD",
+        });
+    }
 </script>
 {{ end }}
