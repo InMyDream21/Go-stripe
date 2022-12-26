@@ -78,6 +78,7 @@ func (c *Card) SubscribeToPlan(cust *stripe.Customer, plan, email, lastFour, car
 	items := []*stripe.SubscriptionItemsParams{
 		{Plan: stripe.String(plan)},
 	}
+
 	params := &stripe.SubscriptionParams{
 		Customer: stripe.String(stripeCustomerID),
 		Items:    items,
@@ -85,6 +86,7 @@ func (c *Card) SubscribeToPlan(cust *stripe.Customer, plan, email, lastFour, car
 	params.AddMetadata("last_four", lastFour)
 	params.AddMetadata("card_type", cardType)
 	params.AddExpand("latest_invoice.payment_intent")
+
 	subscription, err := sub.New(params)
 	if err != nil {
 		return nil, err
@@ -123,6 +125,20 @@ func (c *Card) Refund(pi string, amount int) error {
 	}
 
 	_, err := refund.New(refundParams)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Card) CancelSubscription(subID string) error {
+	stripe.Key = c.Secret
+
+	params := &stripe.SubscriptionParams{
+		CancelAtPeriodEnd: stripe.Bool(true),
+	}
+
+	_, err := sub.Update(subID, params)
 	if err != nil {
 		return err
 	}
