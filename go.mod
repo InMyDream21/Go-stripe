@@ -11,7 +11,7 @@ require (
 )
 
 require (
-	github.com/alexedwards/scs/mysqlstore v0.0.0-20221206171621-0f0849773278
+	github.com/alexedwards/scs/mysqlstore v0.0.0-20221223131519-238b052508b6
 	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
 	github.com/xhit/go-simple-mail/v2 v2.13.0
@@ -19,6 +19,7 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 )

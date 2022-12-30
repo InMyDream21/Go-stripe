@@ -353,7 +353,7 @@ func (app *application) ShowResetPassword(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// make sure not expired
+	// Makefile sure not expired
 	expired := signer.Expired(testURL, 60)
 	if expired {
 		app.errorLog.Println("Link expired")
@@ -416,6 +416,20 @@ func (app *application) ShowSubscription(w http.ResponseWriter, r *http.Request)
 	if err := app.renderTemplate(w, r, "sale", &templateData{
 		StringMap: stringMap,
 	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// AllUsers shows the all users page
+func (app *application) AllUsers(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "all-users", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// OneUser who one admin user for add/edit/delete
+func (app *application) OneUser(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "one-user", &templateData{}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
